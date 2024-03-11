@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useFonts, Poppins_500Medium } from "@expo-google-fonts/poppins";
+import ChevronLeft from "./ChevronLeft";
+import ChevronRight from "./ChevronRight";
 
 import {
-  firstWeekday,
-  daysInMonth,
-  getPreviousMonth,
   getCalendar,
+  getPreviousMonth,
+  getNextMonth,
 } from "../utils/date-utils";
 
 const Calendar = ({ selectedDate, setSelectedDate }) => {
@@ -16,6 +17,11 @@ const Calendar = ({ selectedDate, setSelectedDate }) => {
   });
 
   const prevMonth = getPreviousMonth(
+    displayedCalendar.month,
+    displayedCalendar.year
+  );
+
+  const nextMonth = getNextMonth(
     displayedCalendar.month,
     displayedCalendar.year
   );
@@ -32,16 +38,38 @@ const Calendar = ({ selectedDate, setSelectedDate }) => {
       <View style={styles.headerContainer}>
         <View style={styles.header}>
           <Text style={styles.headerMonth}>
-            {selectedDate.toLocaleString("default", { month: "long" })}
+            {new Date(
+              displayedCalendar.year,
+              displayedCalendar.month,
+              1
+            ).toLocaleString("default", { month: "long" })}
           </Text>
-          <Text style={styles.headerYear}>{selectedDate.getFullYear()}</Text>
+          <Text style={styles.headerYear}>{displayedCalendar.year}</Text>
         </View>
         <View style={styles.actions}>
-          <TouchableOpacity>
-            <Text style={styles.button}>{"<"}</Text>
+          <TouchableOpacity
+            onPress={() =>
+              setDisplayedCalendar({
+                month: prevMonth.month,
+                year: prevMonth.year,
+              })
+            }
+          >
+            <Text style={styles.button}>
+              <ChevronLeft />
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity>
-            <Text style={styles.button}>{">"}</Text>
+          <TouchableOpacity
+            onPress={() =>
+              setDisplayedCalendar({
+                month: nextMonth.month,
+                year: nextMonth.year,
+              })
+            }
+          >
+            <Text style={styles.button}>
+              <ChevronRight />
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -49,22 +77,38 @@ const Calendar = ({ selectedDate, setSelectedDate }) => {
       <View style={styles.calendar}>
         {calendar.map((week, idx) => (
           <View key={idx} style={styles.week}>
-            {week.map((day) => (
-              <Text
-                key={`${week}-${day.day}`}
-                style={[
-                  styles.date,
-                  styles[day.state],
-                  day.day === selectedDate.getDate() &&
-                  displayedCalendar.month === selectedDate.getMonth() &&
-                  displayedCalendar.year === selectedDate.getFullYear()
-                    ? styles.selected
-                    : null,
-                ]}
-              >
-                {day.day}
-              </Text>
-            ))}
+            {week.map((day) => {
+              return (
+                <TouchableOpacity
+                  key={`${week}-${day.day}`}
+                  onPress={() =>
+                    setSelectedDate(
+                      new Date(
+                        displayedCalendar.year,
+                        displayedCalendar.month,
+                        day.day
+                      )
+                    )
+                  }
+                  disabled={day.state === "disabled"}
+                >
+                  <Text
+                    style={[
+                      styles.date,
+                      styles[day.state],
+                      day.state !== "disabled" &&
+                      day.day === selectedDate.getDate() &&
+                      displayedCalendar.month === selectedDate.getMonth() &&
+                      displayedCalendar.year === selectedDate.getFullYear()
+                        ? styles.selected
+                        : null,
+                    ]}
+                  >
+                    {day.day}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         ))}
       </View>
@@ -81,6 +125,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 7,
     width: "100%",
+    paddingBottom: 20,
   },
   headerContainer: {
     flexDirection: "row",
@@ -90,11 +135,13 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "baseline",
+    marginLeft: 5,
   },
   headerMonth: {
     fontFamily: "Poppins_500Medium",
     fontSize: 15,
     color: "#FFF",
+    marginRight: 5,
   },
   headerYear: {
     fontFamily: "Poppins_500Medium",
@@ -103,10 +150,11 @@ const styles = StyleSheet.create({
   },
   actions: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-end",
   },
   button: {
     color: "#FFF",
+    padding: 7,
   },
   calendar: {},
   week: {

@@ -37,5 +37,6 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins_600SemiBold",
     textAlign: "left",
     width: "100%",
+    marginBottom: 10,
   },
 });

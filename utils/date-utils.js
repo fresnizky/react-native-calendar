@@ -6,6 +6,14 @@ export function getPreviousMonth(month, year) {
   }
 }
 
+export function getNextMonth(month, year) {
+  if (month === 11) {
+    return { month: 0, year: year + 1 };
+  } else {
+    return { month: month + 1, year };
+  }
+}
+
 export function getCalendar(month, year) {
   const calendar = [];
   let week = [];
